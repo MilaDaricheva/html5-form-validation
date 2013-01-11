@@ -16,7 +16,7 @@
 <body>
     <div id="wrapper">
         <h1>HTML5 Forms and JavaScript fallbacks</h1>
-        <form id="formTemplate" action="#">
+        <form class="formTemplate" action="#" novalidate>
             <div>
                 <label for="attrPlaceholder">Attribute placeholder</label>
                 <input type="text" id="attrPlaceholder" name="attrPlaceholder" placeholder="Disappears when you type" />
@@ -27,11 +27,11 @@
             </div>
             <div>
                 <label for="attrRequired">Attribute required<sup>*</sup></label>
-                <input type="text" id="attrRequired" name="attrRequired" required />
+                <input type="text" name="attrRequired" required />
             </div>
             <div>
                 <label for="attrPattern">Attribute pattern: allowed uppercase/lovercase letters, numbers, underscores, min 5 max 20 characters (username format)</label>
-                <input type="text" id="attrPattern" name="attrPattern" pattern="[A-Za-z0-9_]{5,20}" />
+                <input type="text" id="" name="attrPattern" pattern="[A-Za-z0-9_]{5,20}" required />
             </div>
             <div>
                 <label for="typeNumber">Type number with min/max/step attributes</label>
@@ -76,7 +76,7 @@
             </div>
             <div>
                 <label for="typeTime">Type time</label>
-                <input type="time" id="typeTime" name="typeTime" required/>
+                <input type="time" id="typeTime" name="typeTime" />
             </div>
             <div>
                 <label for="typeDatetime">Type datetime</label>
@@ -105,22 +105,23 @@
             </div>
             <div>
                 <label for="elementTextarea">Textarea element</label>
-                <textarea id="elementTextarea" rows="10" cols="30" required> </textarea>
+                <textarea id="elementTextarea" rows="10" cols="30" > </textarea>
             </div>
             <div>
                 <label>Checkboxes</label>    
-                <div required>
+                <div data-required>
                     <input type="checkbox" id="bike" name="vehicle" value="bike"><label for="bike">I have a bike</label><br/>
                     <input type="checkbox" id="car" name="vehicle" value="car"><label for="car">I have a car</label><br/> 
                     <input type="checkbox" id="truck" name="vehicle" value="truck"><label for="truck">I have a truck</label> 
                 </div>
-                
             </div>   
             <div>
                 <label>Radio buttons</label>    
-                <input type="radio" id="male" name="sex" value="male"><label for="male">Male</label><br/>
-                <input type="radio" id="female" name="sex" value="female"><label for="female">Female</label><br/>
-                <input type="radio" id="unknown" name="sex" value="unknown"><label for="unknown">Unknown</label>
+                <div data-required>
+                    <input type="radio" id="male" name="sex" value="male"><label for="male">Male</label><br/>
+                    <input type="radio" id="female" name="sex" value="female"><label for="female">Female</label><br/>
+                    <input type="radio" id="unknown" name="sex" value="unknown"><label for="unknown">Unknown</label>
+                </div>
             </div>    
             <div>
                 <label>Select box</label>   

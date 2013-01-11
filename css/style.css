@@ -67,26 +67,26 @@ p {
 	width:640px;
 	margin:0 auto;
 }
-#formTemplate div {
+.formTemplate div {
 	margin:0 20px 20px 0;
 }
-#formTemplate label {
+.formTemplate label {
 	display:block;
 	width:100%;
 }
-#formTemplate input,
-#formTemplate progress,
-#formTemplate meter,
-#formTemplate datalist,
-#formTemplate option  {
+.formTemplate input,
+.formTemplate progress,
+.formTemplate meter,
+.formTemplate datalist,
+.formTemplate option  {
 	width:100%;
 }
-#formTemplate input[type="checkbox"],
-#formTemplate input[type="radio"] {
+.formTemplate input[type="checkbox"],
+.formTemplate input[type="radio"] {
 	width:auto;
 }
-#formTemplate input[type="checkbox"] + label,
-#formTemplate input[type="radio"] + label {
+.formTemplate input[type="checkbox"] + label,
+.formTemplate input[type="radio"] + label {
 	width:auto;
 	display: inline;
 	-webkit-user-select: none;
