@@ -7,25 +7,8 @@
         attrMsgs = $.extend(true, {}, $.fn.validateForm.attrMsgs, attrMsgs);
         notify = $.extend(true, {}, $.fn.validateForm.notify, notify);
 
-        //Ckeck if browser is safari 
-        var isSafari = $.browser.webkit && !(/chrome/.test(navigator.userAgent.toLowerCase())),
-
-            // Check if attribute is supported by a browser
-            isAttributeSupported = function(attribute) {
-                return false;
-                return (attribute in document.createElement("input"));
-            },
-
-            // Check if input type is supported by a browser
-            isInputTypeSupported = function(inputType) {
-                return false;
-                var testInput = document.createElement("input");
-                testInput.setAttribute("type", inputType);
-                return (testInput.type == inputType);
-            },
-
             // Validate input value according to the pattern
-            validateRegExp = function(inputValue, pattern) {
+        var validateRegExp = function(inputValue, pattern) {
                 if(pattern) {
                     try {
                         var regExpObj = new RegExp(pattern);
@@ -39,46 +22,73 @@
                 };
             },
 
-            validateRequiredField = function($field, fieldId, fieldVal, fieldType, formState) {
-                if (fieldType === "checkbox") {
-                    //check single checkbox
-                    if (!$field.is(":checked")) {
-                        //Track form state, send warning
-                        formState[fieldId] = attrMsgs.required;
-                        notify.warning(fieldId, attrMsgs.required);
-                        return false;
+            // Validate pattern
+            validatePattern = function(fieldOpts, pattern, message, formState) {
+                fieldOpts.isInvalid = !validateRegExp(fieldOpts.value, pattern);
+                fieldOpts.message = message;
+                processField(fieldOpts, formState);
+            },
+
+            /*  Validate required field
+            */
+            validateRequiredField = function(fieldOpts, formState) {
+                //field is invalid if it has no value
+                fieldOpts.isInvalid = !fieldOpts.value;      
+
+                if (fieldOpts.type === "checkbox") {
+                    //checkbox may have value but may be unchecked
+                    fieldOpts.isInvalid = !fieldOpts.jField.is(":checked");     
+                }; 
+
+                processField(fieldOpts, formState);
+            },
+
+            /*  Validate required group of fields
+            */
+            validateRequiredFieldGroup = function(fieldOpts, formState) {
+                //field group is invalid if it has no checked fields
+                fieldOpts.isInvalid = fieldOpts.jField.find(":checked").length === 0;
+
+                processField(fieldOpts, formState);
+
+                //TODO: remember uniqueID for fieldOpts, or maybe not
+            },
+
+            /*  Process a field, manipulate with formState object and warnings
+            */
+            processField = function(fieldOpts, formState) {
+                // Add id attribute for a field if it does not have it
+                if ( (typeof fieldOpts.id === "undefined") || !$.trim(fieldOpts.id) ) {
+                    fieldOpts.id = addFieldId(fieldOpts.jField, fieldOpts.uniqueId);
+                    fieldOpts.uniqueId++; //increment uniqueId
+                };
+                
+                if (fieldOpts.isInvalid) {
+                    //Track form state, send warning
+                    formState[fieldOpts.id] = fieldOpts.message;
+                    if (fieldOpts.toNotify) { 
+                        notify.warning(fieldOpts.id, fieldOpts.message); 
                     };
                 } else {
-                    //check other types, not checkbox
-                    //if field has no value
-                    if ( !fieldVal ) {
-                        //Track form state, send warning
-                        formState[fieldId] = attrMsgs.required;
-                        notify.warning(fieldId, attrMsgs.required);
-                        return false;
-                    }; 
-                };
-                //Required field is set, remove from formState object
-                if (formState[fieldId]) {
-                    delete formState[fieldId];
-                };
-                return true;
+                    //Field is valid, remove from formState object if set so
+                    if (fieldOpts.toClearState && formState[fieldOpts.id]) {
+                        delete formState[fieldOpts.id];
+                    };
+                };  
             },
 
             // Add id attribute for a field that does not have it yet
-            addFieldId = function($field, fieldId) {
-                if ( (typeof fieldId === "undefined") || !$.trim(fieldId) ) {
-                    //we use time to make it unique
-                    //TODO: find a better way because when validating all on submit, time may be the same
-                    fieldId = "field_" + (new Date().getTime());
-                    $field.attr("id", fieldId);
-                };   
+            addFieldId = function($field, uniqueId) {
+                //TODO: make field prefix defined by user
+                var fieldId = "field_" + uniqueId; 
+                $field.attr("id", fieldId);  
                 return fieldId;               
             };
 
         return this.each(function() {
-            var parentForm = $(this),
-                formState = {};
+            var parentForm = $(this),   //a form to validate
+                uniqueId = 1,           // will increment and is used for id generation
+                formState = {};         //formSate object contains warning messages for fields  
 
             //TODO: define better rules for novalidation/validation
             /* If a user disabled html5 validation, 
@@ -91,135 +101,127 @@
 
             //track every field change
             parentForm.on('change', function(e) {
-                var $this = $(this),                            //form
-                    $field = $(e.target),                       //changed field
+                var $field = $(e.target),                       //changed field
                     $fParent = $field.parent(),                 //parent of field
-                    fieldId = $field.attr("id"),                //id attribute
-                    fieldVal = $.trim($field.val()),            //trimmed field value
-                    attrRequired = $field.attr("required"),     //required attribute
-                    attrPattern = $field.attr("pattern"),       //pattern attribute
-                    attrType = $field.attr("type");             //type attribute
-       
-                //if field does not have an id, then add one
-                fieldId = addFieldId($field, fieldId);
-                console.log("ID", fieldId);
+                    fieldOpts = {
+                        jField: $field,
+                        id: $field.attr("id"),
+                        uniqueId: uniqueId,
+                        type: $field.attr("type"),
+                        value: $.trim($field.val()),
+                        pattern: $field.attr("pattern"),
+                        isRequired: typeof $field.attr("required") !== "undefined",
+                        message: attrMsgs.required,     //for now we set this as required 
+                        isInvalid: false,   //will override that later for each check
+                        toNotify: true,     //notify when a field has changed
+                        toClearState: true  //clear formState object when a field has changed to be valid 
+                    };
                 
-                //if required attribute is not supported, but field has it
-                if ( !isAttributeSupported("required") && (typeof attrRequired !== "undefined") ) {
-                    validateRequiredField($field, fieldId, fieldVal, attrType, formState);
+                //if required attribute is set
+                if ( fieldOpts.isRequired ) {
+                    validateRequiredField(fieldOpts, formState);
                 };
                 //console.log("Form State", formState);
 
                 //check multiple checkboxes,
                 //if field is a checkbox with required attribute set for parent,
-                if ( (attrType === "checkbox") && (typeof $fParent.data("required") !== "undefined") ) {
-                    //if parent of the field does not have an id, then add one
-                    var fieldParentId = addFieldId($fParent, $fParent.attr("id"));
-                    //if none of checkboxes are checked
-                    if ($fParent.find(":checked").length === 0) {
-                        //Track form state, send warning
-                        formState[fieldParentId] = attrMsgs.required;
-                        notify.warning(fieldParentId, attrMsgs.required);
-                    } else {
-                        //Required field is set, remove from formState object
-                        if (formState[fieldParentId]) {
-                            delete formState[fieldParentId];
-                        };        
-                    };   
+                if ( (fieldOpts.type === "checkbox") && (typeof $fParent.data("required") !== "undefined") ) {
+                    var fieldGroupOpts = {
+                            jField: $fParent,
+                            id: $fParent.attr("id"),
+                            uniqueId: uniqueId,
+                            //type: $field.attr("type"),
+                            //value: $.trim($field.val()),
+                            //pattern: $field.attr("pattern"),
+                            //isRequired: typeof $field.attr("required") !== "undefined",
+                            message: attrMsgs.required,     //for now we set this as required 
+                            isInvalid: false,   //will override that later for each check
+                            toNotify: true,     //do not notify when a field has changed, we do it later
+                            toClearState: true  //do not clear formState, nothing is filled on submit  
+                        };  
+
+                    validateRequiredFieldGroup(fieldGroupOpts, formState);
+
+                    //save uniqueId so that next time we set new id it will be unique (incremented)
+                    uniqueId = fieldGroupOpts.uniqueId;
+                    
                 };
 
-                //validate throught input types
-                //if validation rules exist for this field type and value is set and field type is not supported
-                if ( (typeof typeOptions[attrType] !== "undefined") && fieldVal && !isInputTypeSupported(attrType) ) {
-                    var validationResult = validateRegExp(fieldVal, typeOptions[attrType].pattern);
-                    if (!validationResult) {
-                        //Track form state, send warning
-                        formState[fieldId] = typeOptions[attrType].message;
-                        notify.warning(fieldId, typeOptions[attrType].message);
-                    } else {
-                        //Field matches the pattern, remove from formState object
-                        if (formState[fieldId]) {
-                            delete formState[fieldId];
-                        };
+                //validate patterns
+                if (fieldOpts.value && fieldOpts.type !== "checkbox") {
+                    //if attribute pattern is set, use it to validate value
+                    //inline pattern takes presidence over patterns defined with plugin options
+                    if ( typeof fieldOpts.pattern !== "undefined" ) {
+                        validatePattern(fieldOpts, fieldOpts.pattern, attrMsgs.pattern, formState);
+                    } else if (typeof typeOptions[fieldOpts.type] !== "undefined") {
+                        //if validation rules exist for this field type, validate
+                        var fTypeOpts = typeOptions[fieldOpts.type];
+                        validatePattern(fieldOpts, fTypeOpts.pattern, fTypeOpts.message, formState);
                     };
                 };
 
-                //if pattern attribute is not supported  
-                if (!isAttributeSupported("pattern")) {     
-                    //if attribute is pattern, use it to validate value
-                    if ( (typeof attrPattern !== "undefined") && fieldVal ) {
-                        var validationResult = validateRegExp(fieldVal, attrPattern);
-                        if (!validationResult) {
-                            //Track form state, send warning
-                            formState[fieldId] = attrMsgs.pattern;
-                            notify.warning(fieldId, attrMsgs.pattern);
-                        } else {
-                            //Field matches the pattern, remove from formState object
-                            if (formState[fieldId]) {
-                                delete formState[fieldId];
-                            };
-                        };
-                    };
-                };
-
-                //TODO: there can be a situation when we have input type email/url/tel/number and pattern attr as well
+                //save uniqueId so that next time we set new id it will be unique (incremented)
+                uniqueId = fieldOpts.uniqueId;
 
                 //console.log(formState);
-                
 
             });  
 
             parentForm.on('submit', function(e) {
-                //if formState object does not have warnings, we still can have empty required fields, 
-                //empty required radio button/checkbox groups.
-                //No need to check for type attr again because if user used those fields, we have all warnings in our object
+                //We still can have empty required fields or empty required radio button/checkbox groups.
+                //No need to check for type attr again because if a user has changed those fields, we have all warnings in our object
+                
+                //Check all required fields 
+                $(this).find("[required]").each(function() {
+                    var $field = $(this),             //required field
+                        fieldOpts = {
+                            jField: $field,
+                            id: $field.attr("id"),
+                            uniqueId: uniqueId,
+                            type: $field.attr("type"),
+                            value: $.trim($field.val()),
+                            //pattern: $field.attr("pattern"),
+                            //isRequired: typeof $field.attr("required") !== "undefined",
+                            message: attrMsgs.required,     //for now we set this as required 
+                            isInvalid: false,   //will override that later for each check
+                            toNotify: false,    //do not notify when a field has changed, we do it later
+                            toClearState: false //do not clear formState, nothing is fixed on submit  
+                        };  
+
+                    validateRequiredField(fieldOpts, formState);
+
+                    //save uniqueId so that next time we set new id it will be unique (incremented)
+                    uniqueId = fieldOpts.uniqueId;
+
+                });
+                
+                //Check all required groups
+                $(this).find("[data-required]").each(function() {
+                    var $field = $(this),             //required field group
+                        fieldOpts = {
+                            jField: $field,
+                            id: $field.attr("id"),
+                            uniqueId: uniqueId,
+                            //type: $field.attr("type"),
+                            //value: $.trim($field.val()),
+                            //pattern: $field.attr("pattern"),
+                            //isRequired: typeof $field.attr("required") !== "undefined",
+                            message: attrMsgs.required,     //for now we set this as required 
+                            isInvalid: false,   //will override that later for each check
+                            toNotify: false,    //do not notify when a field has changed, we do it later
+                            toClearState: false //do not clear formState, nothing is filled on submit  
+                        };  
+
+                    validateRequiredFieldGroup(fieldOpts, formState);
+
+                    //save uniqueId so that next time we set new id it will be unique (incremented)
+                    uniqueId = fieldOpts.uniqueId;
+
+                });
+
                 if ($.isEmptyObject(formState)) {
-                    //Check all required fields 
-                    $(this).find("[required]").each(function() {
-                        var $field = $(this),                           //required field
-                            fieldId = $field.attr("id"),                //id attribute of the field
-                            fieldVal = $.trim($field.val()),            //trimmed field value
-                            attrType = $field.attr("type");             //type attribute
-       
-                        //if field does not have an id, then add one
-                        fieldId = addFieldId($field, fieldId);
-                        
-                        //TODO: replace supported check, we don't need to check for every field, 
-                        //result is same for all fields and forms
-                        //if required attribute is not supported
-                        if ( !isAttributeSupported("required") ) {
-                            validateRequiredField($field, fieldId, fieldVal, attrType, formState);
-                        };                    
-                        //console.log(this);
-                    });
-                    
-                    //Check all required groups
-                    $(this).find("[data-required]").each(function() {
-                        var $field = $(this),                           //required field
-                            fieldId = $field.attr("id");                //id attribute of the field
-       
-                        //if field does not have an id, then add one
-                        fieldId = addFieldId($field, fieldId);
-
-                        if ($field.find(":checked").length === 0) {
-                            //TODO: create object to track form state
-                            formState[fieldId] = attrMsgs.required;
-                            notify.warning(fieldId, attrMsgs.required);
-                        };    
-                        //console.log(this);
-                        //console.log($(this).find(":checked").length);
-                    });    
-
-                    if ($.isEmptyObject(formState)) {
-                        //if formState object is still empty, then the form passed validation
-                        return true;
-                    } else {
-                        //notifications are already set by this moment
-                        //TODO: some global warning about form submition failed
-                        return false;      
-                    };
-                      
-
+                    //if formState object is still empty, then the form passed validation
+                    return true;    
                 } else {
                     //formState object has warnings, so show them all, do not allow form submition
                     var fieldId;
@@ -229,12 +231,7 @@
                     //TODO: some global warning about form submition failed
                     return false;
                 };
-                // This return should never happen
-                return false;
             });      
-
-
-
         });
     };
 
@@ -269,10 +266,10 @@
     //Notify that something is not valid
     $.fn.validateForm.notify = {
         warning: function(fieldId, message) {
-            console.log('Warning for field: ', fieldId, message);
+            console.log('Warning for field: ', fieldId, ': ', message);
         },
         patternError: function(pattern, err) {
-            console.log('Pattern is wrong: ', pattern, err);
+            console.log('Pattern is wrong: ', pattern, ': ', err);
         }      
     };
 
