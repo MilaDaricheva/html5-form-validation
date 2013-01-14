@@ -32,6 +32,8 @@
             /*  Validate required field
             */
             validateRequiredField = function(fieldOpts, formState) {
+                fieldOpts.message = attrMsgs.required;
+
                 //field is invalid if it has no value
                 fieldOpts.isInvalid = !fieldOpts.value;      
 
@@ -46,12 +48,12 @@
             /*  Validate required group of fields
             */
             validateRequiredFieldGroup = function(fieldOpts, formState) {
+                fieldOpts.message = attrMsgs.required;
+
                 //field group is invalid if it has no checked fields
                 fieldOpts.isInvalid = fieldOpts.jField.find(":checked").length === 0;
 
                 processField(fieldOpts, formState);
-
-                //TODO: remember uniqueID for fieldOpts, or maybe not
             },
 
             /*  Process a field, manipulate with formState object and warnings
@@ -83,6 +85,20 @@
                 var fieldId = "field_" + uniqueId; 
                 $field.attr("id", fieldId);  
                 return fieldId;               
+            },
+
+            fieldOptions = function($field, uniqueId, toNotify, toClearState) {
+                return {
+                    jField: $field,
+                    id: $field.attr("id"),
+                    uniqueId: uniqueId,
+                    type: $field.attr("type"),
+                    value: $.trim($field.val()),
+                    pattern: $field.attr("pattern"),
+                    isRequired: typeof $field.attr("required") !== "undefined",
+                    toNotify: (typeof toNotify === "undefined") ? true : toNotify,     //notify when a field has changed
+                    toClearState: (typeof toClearState === "undefined") ? true : toClearState  //clear formState object when a field has changed to be valid
+                };                   
             };
 
         return this.each(function() {
@@ -103,19 +119,7 @@
             parentForm.on('change', function(e) {
                 var $field = $(e.target),                       //changed field
                     $fParent = $field.parent(),                 //parent of field
-                    fieldOpts = {
-                        jField: $field,
-                        id: $field.attr("id"),
-                        uniqueId: uniqueId,
-                        type: $field.attr("type"),
-                        value: $.trim($field.val()),
-                        pattern: $field.attr("pattern"),
-                        isRequired: typeof $field.attr("required") !== "undefined",
-                        message: attrMsgs.required,     //for now we set this as required 
-                        isInvalid: false,   //will override that later for each check
-                        toNotify: true,     //notify when a field has changed
-                        toClearState: true  //clear formState object when a field has changed to be valid 
-                    };
+                    fieldOpts = fieldOptions($field, uniqueId);
                 
                 //if required attribute is set
                 if ( fieldOpts.isRequired ) {
@@ -126,19 +130,7 @@
                 //check multiple checkboxes,
                 //if field is a checkbox with required attribute set for parent,
                 if ( (fieldOpts.type === "checkbox") && (typeof $fParent.data("required") !== "undefined") ) {
-                    var fieldGroupOpts = {
-                            jField: $fParent,
-                            id: $fParent.attr("id"),
-                            uniqueId: uniqueId,
-                            //type: $field.attr("type"),
-                            //value: $.trim($field.val()),
-                            //pattern: $field.attr("pattern"),
-                            //isRequired: typeof $field.attr("required") !== "undefined",
-                            message: attrMsgs.required,     //for now we set this as required 
-                            isInvalid: false,   //will override that later for each check
-                            toNotify: true,     //do not notify when a field has changed, we do it later
-                            toClearState: true  //do not clear formState, nothing is filled on submit  
-                        };  
+                    var fieldGroupOpts = fieldOptions($fParent, uniqueId);
 
                     validateRequiredFieldGroup(fieldGroupOpts, formState);
 
@@ -161,8 +153,11 @@
                 };
 
                 //save uniqueId so that next time we set new id it will be unique (incremented)
-                uniqueId = fieldOpts.uniqueId;
-
+                //TODO:be careful with overrding this to lower value
+                if (uniqueId < fieldOpts.uniqueId) {
+                    uniqueId = fieldOpts.uniqueId;
+                };
+                
                 //console.log(formState);
 
             });  
@@ -174,49 +169,23 @@
                 //Check all required fields 
                 $(this).find("[required]").each(function() {
                     var $field = $(this),             //required field
-                        fieldOpts = {
-                            jField: $field,
-                            id: $field.attr("id"),
-                            uniqueId: uniqueId,
-                            type: $field.attr("type"),
-                            value: $.trim($field.val()),
-                            //pattern: $field.attr("pattern"),
-                            //isRequired: typeof $field.attr("required") !== "undefined",
-                            message: attrMsgs.required,     //for now we set this as required 
-                            isInvalid: false,   //will override that later for each check
-                            toNotify: false,    //do not notify when a field has changed, we do it later
-                            toClearState: false //do not clear formState, nothing is fixed on submit  
-                        };  
+                        fieldOpts = fieldOptions($field, uniqueId, false, false);
 
                     validateRequiredField(fieldOpts, formState);
 
                     //save uniqueId so that next time we set new id it will be unique (incremented)
                     uniqueId = fieldOpts.uniqueId;
-
                 });
                 
                 //Check all required groups
                 $(this).find("[data-required]").each(function() {
                     var $field = $(this),             //required field group
-                        fieldOpts = {
-                            jField: $field,
-                            id: $field.attr("id"),
-                            uniqueId: uniqueId,
-                            //type: $field.attr("type"),
-                            //value: $.trim($field.val()),
-                            //pattern: $field.attr("pattern"),
-                            //isRequired: typeof $field.attr("required") !== "undefined",
-                            message: attrMsgs.required,     //for now we set this as required 
-                            isInvalid: false,   //will override that later for each check
-                            toNotify: false,    //do not notify when a field has changed, we do it later
-                            toClearState: false //do not clear formState, nothing is filled on submit  
-                        };  
+                        fieldOpts = fieldOptions($field, uniqueId, false, false);
 
                     validateRequiredFieldGroup(fieldOpts, formState);
 
                     //save uniqueId so that next time we set new id it will be unique (incremented)
                     uniqueId = fieldOpts.uniqueId;
-
                 });
 
                 if ($.isEmptyObject(formState)) {
