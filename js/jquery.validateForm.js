@@ -24,8 +24,9 @@
 
             // Validate pattern
             validatePattern = function(fieldOpts, pattern, message, formState) {
-                fieldOpts.isInvalid = !validateRegExp(fieldOpts.value, pattern);
                 fieldOpts.message = message;
+                fieldOpts.isInvalid = !validateRegExp(fieldOpts.value, pattern);
+                
                 processField(fieldOpts, formState);
             },
 
@@ -34,27 +35,34 @@
             validateRequiredField = function(fieldOpts, formState) {
                 fieldOpts.message = attrMsgs.required;
 
-                //field is invalid if it has no value
-                fieldOpts.isInvalid = !fieldOpts.value;      
-
-                if (fieldOpts.type === "checkbox") {
-                    //checkbox may have value but may be unchecked
-                    fieldOpts.isInvalid = !fieldOpts.jField.is(":checked");     
-                }; 
+                if (typeof fieldOpts.jField.data("required") !== "undefined") {
+                    //then we check a fieldgroup 
+                    //field group is invalid if it has no checked fields
+                    fieldOpts.isInvalid = fieldOpts.jField.find(":checked").length === 0;
+                } else {
+                    //then we check a field
+                    if (fieldOpts.type === "checkbox") {
+                        //checkbox may have value but may be unchecked
+                        fieldOpts.isInvalid = !fieldOpts.jField.is(":checked");     
+                    } else {
+                        //field is invalid if it has no value
+                        fieldOpts.isInvalid = !fieldOpts.value;      
+                    };
+                };
 
                 processField(fieldOpts, formState);
             },
 
             /*  Validate required group of fields
             */
-            validateRequiredFieldGroup = function(fieldOpts, formState) {
+            /*validateRequiredFieldGroup = function(fieldOpts, formState) {
                 fieldOpts.message = attrMsgs.required;
 
                 //field group is invalid if it has no checked fields
                 fieldOpts.isInvalid = fieldOpts.jField.find(":checked").length === 0;
 
                 processField(fieldOpts, formState);
-            },
+            },*/
 
             /*  Process a field, manipulate with formState object and warnings
             */
@@ -132,7 +140,7 @@
                 if ( (fieldOpts.type === "checkbox") && (typeof $fParent.data("required") !== "undefined") ) {
                     var fieldGroupOpts = fieldOptions($fParent, uniqueId);
 
-                    validateRequiredFieldGroup(fieldGroupOpts, formState);
+                    validateRequiredField(fieldGroupOpts, formState);
 
                     //save uniqueId so that next time we set new id it will be unique (incremented)
                     uniqueId = fieldGroupOpts.uniqueId;
@@ -167,10 +175,11 @@
                 //No need to check for type attr again because if a user has changed those fields, we have all warnings in our object
                 
                 //Check all required fields 
-                $(this).find("[required]").each(function() {
+                $(this).find("[required], [data-required]").each(function() {
                     var $field = $(this),             //required field
                         fieldOpts = fieldOptions($field, uniqueId, false, false);
 
+                    //console.log(typeof $field.data("required") !== "undefined");    
                     validateRequiredField(fieldOpts, formState);
 
                     //save uniqueId so that next time we set new id it will be unique (incremented)
@@ -178,7 +187,7 @@
                 });
                 
                 //Check all required groups
-                $(this).find("[data-required]").each(function() {
+                /*$(this).find("[data-required]").each(function() {
                     var $field = $(this),             //required field group
                         fieldOpts = fieldOptions($field, uniqueId, false, false);
 
@@ -186,7 +195,7 @@
 
                     //save uniqueId so that next time we set new id it will be unique (incremented)
                     uniqueId = fieldOpts.uniqueId;
-                });
+                });*/
 
                 if ($.isEmptyObject(formState)) {
                     //if formState object is still empty, then the form passed validation
