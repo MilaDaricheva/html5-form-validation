@@ -1,11 +1,11 @@
 ;(function($) {
 
-    $.fn.validateForm = function(typeOptions, attrMsgs, notify) {
+    $.fn.validateForm = function(typeOptions, attrMsgs, notif) {
 
         //Extend the defaults with provided options        
         typeOptions = $.extend(true, {}, $.fn.validateForm.typeOptions, typeOptions);
         attrMsgs = $.extend(true, {}, $.fn.validateForm.attrMsgs, attrMsgs);
-        notify = $.extend(true, {}, $.fn.validateForm.notify, notify);
+        notif = $.extend(true, {}, $.fn.validateForm.notif, notif);
 
             // Validate input value according to the pattern
         var validateRegExp = function(inputValue, pattern) {
@@ -14,7 +14,7 @@
                         var regExpObj = new RegExp(pattern);
                         return regExpObj.test(inputValue); 
                     } catch (err) {
-                        notify.patternError(pattern, err);
+                        notif.show(SUBMITID, "Pattern is wrong: " + pattern + " Error: " + err);
                         return false;
                     };
                 } else {
@@ -62,22 +62,15 @@
                     //Track form state, send warning
                     formState[fieldOpts.id] = fieldOpts.message;
                     if (fieldOpts.toNotify) { 
-                        notify.warning(fieldOpts.id, fieldOpts.message); 
+                        notif.show(fieldOpts.id, fieldOpts.message); 
                     };
                 } else {
-                    //Field is valid, remove from formState object if set so
+                    //Field is valid, remove from formState object if set so and hide notification
                     if (fieldOpts.toClearState && formState[fieldOpts.id]) {
-                        hideWarning(fieldOpts.jField);
+                        notif.hide(fieldOpts.jField);
                         delete formState[fieldOpts.id];
                     };
                 };  
-            },
-
-            hideWarning = function(jField) {
-                var prev = jField.prev();
-                if (prev.hasClass("notification")) {
-                    prev.hide();
-                }
             },
 
             // Add id attribute for a field that does not have it yet
@@ -164,10 +157,10 @@
                     //formState object has warnings, so show them all, do not allow form submition
                     var fieldId;
                     for (fieldId in formState) {
-                        notify.warning(fieldId, formState[fieldId]);
+                        notif.show(fieldId, formState[fieldId]);
                     };
                     //TODO: some global warning about form submition failed
-                    notify.submitionFailed(attrMsgs.failed);
+                    notif.show(SUBMITID,attrMsgs.failed);
                     return false;
                 };
             });      
@@ -204,8 +197,8 @@
     };
 
     //Notify that something is not valid
-    $.fn.validateForm.notify = {
-        warning: function(fieldId, message) {
+    $.fn.validateForm.notif = {
+        show: function(fieldId, message) {
             //console.log('Warning for field: ', fieldId, ': ', message);
             var field = $('#'+fieldId),
                 prev = field.prev(),
@@ -219,12 +212,12 @@
                 field.before(notification);
             };  
         },
-        patternError: function(pattern, err) {
-            console.log('Pattern is wrong: ', pattern, ': ', err);
-        }, 
-        submitionFailed: function(message) {
-            console.log(message);
-        }     
+        hide: function(jField) {
+            var prev = jField.prev();
+            if (prev.hasClass("notification")) {
+                prev.hide();
+            };
+        } 
     };
 
 })(jQuery);
