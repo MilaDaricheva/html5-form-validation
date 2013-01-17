@@ -8,13 +8,13 @@
         notif = $.extend(true, {}, $.fn.validateForm.notif, notif);
 
             // Validate input value according to the pattern
-        var validateRegExp = function(inputValue, pattern) {
+        var validateRegExp = function(jField, inputValue, pattern) {
                 if(pattern) {
                     try {
                         var regExpObj = new RegExp(pattern);
                         return regExpObj.test(inputValue); 
                     } catch (err) {
-                        notif.show(SUBMITID, "Pattern is wrong: " + pattern + " Error: " + err);
+                        notif.show(jField, "Pattern is wrong: " + pattern + " Error: " + err);
                         return false;
                     };
                 } else {
@@ -25,7 +25,7 @@
             // Validate pattern
             validatePattern = function(fieldOpts, pattern, message, formState) {
                 fieldOpts.message = message;
-                fieldOpts.isInvalid = !validateRegExp(fieldOpts.value, pattern);        
+                fieldOpts.isInvalid = !validateRegExp(fieldOpts.jField, fieldOpts.value, pattern);        
                 processField(fieldOpts, formState);
             },
 
@@ -59,10 +59,10 @@
                 };
                 
                 if (fieldOpts.isInvalid) {
-                    //Track form state, send warning
+                    //Track form state, make notification 
                     formState[fieldOpts.id] = fieldOpts.message;
                     if (fieldOpts.toNotify) { 
-                        notif.show(fieldOpts.id, fieldOpts.message); 
+                        notif.show(fieldOpts.jField, fieldOpts.message); 
                     };
                 } else {
                     //Field is valid, remove from formState object if set so and hide notification
@@ -95,12 +95,12 @@
             };
 
         return this.each(function() {
-            var parentForm = $(this),   //a form to validate
+            var form = $(this),         //a form to validate
                 uniqueId = 1,           // will increment and is used for id generation
                 formState = {};         //formSate object contains warning messages for fields  
 
             //Track every field change
-            parentForm.on('change', function(e) {
+            form.on('change', function(e) {
                 var $field = $(e.target),                       //changed field
                     $fParent = $field.parent(),                 //parent of field
                     fieldOpts = fieldOptions($field, uniqueId);
@@ -138,10 +138,11 @@
 
             });  
 
-            parentForm.on('submit', function(e) {
+            form.on('submit', function(e) {
+                var submitButton = form.find('[type="submit"]');
                 //We still can have empty required fields or empty required radio button/checkbox groups.
                 //No need to check for type attr again because if a user has changed those fields, we have all warnings in our object
-                $(this).find("[required], [data-required]").each(function() {
+                form.find("[required], [data-required]").each(function() {
                     var $field = $(this),
                         fieldOpts = fieldOptions($field, uniqueId, false, false);  
 
@@ -152,6 +153,7 @@
 
                 if ($.isEmptyObject(formState)) {
                     //If formState object is still empty, then the form passed validation
+                    notif.hide(submitButton);
                     return true;    
                 } else {
                     //formState object has warnings, so show them all, do not allow form submition
@@ -159,8 +161,8 @@
                     for (fieldId in formState) {
                         notif.show(fieldId, formState[fieldId]);
                     };
-                    //TODO: some global warning about form submition failed
-                    notif.show(SUBMITID,attrMsgs.failed);
+                    //Global warning about form submition failed
+                    notif.show(submitButton, attrMsgs.failed);
                     return false;
                 };
             });      
@@ -198,12 +200,13 @@
 
     //Notify that something is not valid
     $.fn.validateForm.notif = {
-        show: function(fieldId, message) {
-            //console.log('Warning for field: ', fieldId, ': ', message);
-            var field = $('#'+fieldId),
-                prev = field.prev(),
+        show: function(field, message) {
+            if (typeof field === "string") {
+                field = $('#' + field);
+            }; 
+            var prev = field.prev(),
                 notification = $("<div/>", {
-                    class: 'notification',
+                    class: "notification",
                     text: message
                 });
             if (prev.hasClass("notification")) {

@@ -37,10 +37,7 @@
                 <label for="typeNumber">Type number with min/max/step attributes</label>
                 <input type="number" id="typeNumber" name="typeNumber" min="0" max="50" step="5" />
             </div>
-            <div>
-                <label for="typeRange">Type range with min/max attributes</label>
-                <input type="range" id="typeRange" name="typeRange" min="1" max="10" />
-            </div>
+            
             <div>
                 <label for="typeEmail">Type email</label>
                 <input type="email" id="typeEmail" name="typeEmail" placeholder="some@email.here" />
@@ -53,14 +50,7 @@
                 <label for="typeTel">Type tel</label>
                 <input type="tel" id="typeTel" name="typeTel" placeholder="xxx-xxx-xxxx" />
             </div>
-            <div>
-                <label for="typeSearch">Type search</label>
-                <input type="search" id="typeSearch" name="typeSearch" placeholder="Search..." />
-            </div>
-            <div>
-                <label for="typeColor">Type color</label>
-                <input type="color" id="typeColor" name="typeColor" />
-            </div>
+            
             <div>
                 <label for="elementDatalist">Datalist element</label>
                 <input type="text" id="elementDatalist" name="elementDatalist" list="myDatalist" placeholder="Dropdown should appear here" />
@@ -70,39 +60,7 @@
                     <option label="ecom" value="eCommerce Package" >
                 </datalist>
             </div>
-            <div>
-                <label for="typeDate">Type date</label>
-                <input type="date" id="typeDate" name="typeDate" />
-            </div>
-            <div>
-                <label for="typeTime">Type time</label>
-                <input type="time" id="typeTime" name="typeTime" />
-            </div>
-            <div>
-                <label for="typeDatetime">Type datetime</label>
-                <input type="datetime" id="typeDatetime" name="typeDatetime" />
-            </div>
-            <div>
-                <label for="typeMonth">Type month</label>
-                <input type="month" id="typeMonth" name="typeMonth" />
-            </div>
-            <div>
-                <label for="typeWeek">Type week</label>
-                <input type="week" id="typeWeek" name="typeWeek" />
-            </div>
-            <div>
-                <label for="elementOutput">Output element</label>
-                <input type="range" id="elementOutput" name="elementOutput" />
-                <output for="elementOutput"></output>
-            </div>
-            <div>
-                <label>Progress element</label>
-                <progress id="elementProgress" max="100" value="20" >Showing some note for browsers which do not support progress element</progress>
-            </div>
-            <div>
-                <label>Meter element</label>
-                <meter id="elementMeter" min="0" max="100" value="20" >Showing some note for browsers which do not support meter element</meter>
-            </div>
+            
             <div>
                 <label for="elementTextarea">Textarea element</label>
                 <textarea id="elementTextarea" rows="10" cols="30" > </textarea>
