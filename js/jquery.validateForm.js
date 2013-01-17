@@ -82,8 +82,8 @@
                     fieldOpts.isInvalid = fieldOpts.jField.find(":checked").length === 0;
                 } else {
                     //Check a field
-                    if (fieldOpts.type === "checkbox") {
-                        //Checkbox may have value but may be unchecked
+                    if (fieldOpts.type === "checkbox" || fieldOpts.type === "radio") {
+                        //Checkbox/radio button may have value but may be unchecked
                         fieldOpts.isInvalid = !fieldOpts.jField.is(":checked");     
                     } else {
                         //Field is invalid if it has no value
@@ -110,8 +110,8 @@
                     validateRequiredField(fieldOpts, formState);
                 };
 
-                //If field is a checkbox with required attribute set for parent,
-                if ( (fieldOpts.type === "checkbox") && (typeof $fParent.data("required") !== "undefined") ) {
+                //If field has required attribute set for parent,
+                if (typeof $fParent.data("required") !== "undefined") {
                     var fieldGroupOpts = fieldOptions($fParent, uniqueId);
                     validateRequiredField(fieldGroupOpts, formState);
                     //save uniqueId so that next time when we set new id it will be unique (incremented)
@@ -119,7 +119,7 @@
                 };
 
                 //Validate patterns
-                if (fieldOpts.value && fieldOpts.type !== "checkbox") {
+                if (fieldOpts.value) {
                     //If attribute pattern is set, use it to validate value
                     //Inline pattern takes presidence over patterns defined with plugin options
                     if ( typeof fieldOpts.pattern !== "undefined" ) {
