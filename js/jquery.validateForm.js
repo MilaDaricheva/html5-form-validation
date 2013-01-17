@@ -217,6 +217,9 @@
                     text: message
                 });
             if (prev.hasClass($.fn.validateForm.options.notifClass)) {
+                if (prev.text() !== message) {
+                    prev.text(message);
+                };
                 prev.show();
             } else {
                 field.before(notification);
