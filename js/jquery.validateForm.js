@@ -7,7 +7,11 @@
         notif = $.extend(true, {}, $.fn.validateForm.notif, notif);
 
             
-        var // Add id attribute for a field 
+        var isDefined = function(property) {
+                return typeof property !== "undefined";
+            },
+
+            // Add id attribute for a field 
             addFieldId = function($field, uniqueId) {
                 var fieldId = options.fieldIdPrefix + uniqueId; 
                 $field.attr("id", fieldId);  
@@ -23,9 +27,9 @@
                     type: $field.attr("type"),
                     value: $.trim($field.val()),
                     pattern: $field.attr("pattern"),
-                    isRequired: typeof $field.attr("required") !== "undefined",
-                    toNotify: (typeof toNotify === "undefined") ? true : toNotify,     //notify when a field has changed
-                    toClearState: (typeof toClearState === "undefined") ? true : toClearState  //clear formState object when a field has changed to be valid
+                    isRequired: isDefined($field.attr("required")),
+                    toNotify: isDefined(toNotify) ? toNotify : true,     
+                    toClearState: isDefined(toClearState) ? toClearState : true
                 };                   
             },
 
@@ -48,7 +52,7 @@
             processField = function(fieldOpts, formState) {
                 if (fieldOpts.isInvalid) {
                     // Add id attribute for a field if it does not have it
-                    if ( (typeof fieldOpts.id === "undefined") || !$.trim(fieldOpts.id) ) {
+                    if ( !isDefined(fieldOpts.id) || !$.trim(fieldOpts.id) ) {
                         fieldOpts.id = addFieldId(fieldOpts.jField, fieldOpts.uniqueId);
                         fieldOpts.uniqueId++; //increment uniqueId
                     };
@@ -77,7 +81,7 @@
             validateRequiredField = function(fieldOpts, formState) {
                 fieldOpts.message = options.messages.required;
 
-                if (typeof fieldOpts.jField.data("required") !== "undefined") {
+                if (isDefined(fieldOpts.jField.data("required"))) {
                     //Check a fieldgroup, it is invalid if it has no checked fields 
                     fieldOpts.isInvalid = fieldOpts.jField.find(":checked").length === 0;
                 } else {
@@ -111,7 +115,7 @@
                 };
 
                 //If field has required attribute set for parent,
-                if (typeof $fParent.data("required") !== "undefined") {
+                if ( isDefined($fParent.data("required")) ) {
                     var fieldGroupOpts = fieldOptions($fParent, uniqueId);
                     validateRequiredField(fieldGroupOpts, formState);
                     //save uniqueId so that next time when we set new id it will be unique (incremented)
@@ -122,9 +126,9 @@
                 if (fieldOpts.value) {
                     //If attribute pattern is set, use it to validate value
                     //Inline pattern takes presidence over patterns defined with plugin options
-                    if ( typeof fieldOpts.pattern !== "undefined" ) {
+                    if ( isDefined(fieldOpts.pattern) ) {
                         validatePattern(fieldOpts, fieldOpts.pattern, options.messages.pattern, formState);
-                    } else if (typeof options.typeOptions[fieldOpts.type] !== "undefined") {
+                    } else if ( isDefined(options.typeOptions[fieldOpts.type]) ) {
                         //If validation rules exist for this field type, then validate
                         var fTypeOpts = options.typeOptions[fieldOpts.type];
                         validatePattern(fieldOpts, fTypeOpts.pattern, fTypeOpts.message, formState);
