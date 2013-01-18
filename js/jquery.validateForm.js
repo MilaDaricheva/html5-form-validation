@@ -124,13 +124,14 @@
 
                 //Validate patterns
                 if (fieldOpts.value) {
+                    var fTypeOpts = options.typeOptions[fieldOpts.type];
                     //If attribute pattern is set, use it to validate value
                     //Inline pattern takes presidence over patterns defined with plugin options
                     if ( isDefined(fieldOpts.pattern) ) {
+                        //TODO: better params
                         validatePattern(fieldOpts, fieldOpts.pattern, options.messages.pattern, formState);
-                    } else if ( isDefined(options.typeOptions[fieldOpts.type]) ) {
+                    } else if ( isDefined(fTypeOpts) ) {
                         //If validation rules exist for this field type, then validate
-                        var fTypeOpts = options.typeOptions[fieldOpts.type];
                         validatePattern(fieldOpts, fTypeOpts.pattern, fTypeOpts.message, formState);
                     };
                 };
@@ -139,13 +140,12 @@
                 if (uniqueId < fieldOpts.uniqueId) {
                     uniqueId = fieldOpts.uniqueId;
                 };
-
             });  
-
+            
             form.on('submit', function(e) {
                 var submitButton = form.find(options.submitButton);
                 //We still can have empty required fields or empty required radio button/checkbox groups.
-                //No need to check for type attr again because if a user has changed those fields, we have all warnings in our object
+                //No need to check for patterns because if a user has changed those fields, we have all warnings in our object
                 form.find(options.requiredFields).each(function() {
                     var $field = $(this),
                         fieldOpts = fieldOptions($field, uniqueId, false, false);  
