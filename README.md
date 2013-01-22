@@ -59,14 +59,14 @@ Override default options for all forms, make it once before plugin initializatio
 
 Override default notification functions for all forms, make it once before plugin initializations:
 
-$.fn.validateForm.notif = {
-    show: function(field, message) {
-        //your code to show notification
-    },
-    hide: function(jField) {
-        //your code to hide notification
-    } 
-};
+    $.fn.validateForm.notif = {
+        show: function(field, message) {
+            //your code to show notification
+        },
+        hide: function(jField) {
+            //your code to hide notification
+        } 
+    };
 
 To override params only for selected forms just pass objects as params:
 
