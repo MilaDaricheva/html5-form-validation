@@ -1,3 +1,9 @@
+/*
+* Project: jQuery plugin, html5 form validation
+* Description: Validating forms which use html5 attributes
+* Author: Mila Daricheva
+* License: MIT License
+*/
 ;(function($) {
 
     $.fn.validateForm = function(options, notif) {
