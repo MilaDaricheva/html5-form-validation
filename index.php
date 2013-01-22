@@ -30,7 +30,7 @@
                 <input type="text" class="width100" id="requiredPattern" name="requiredPattern" pattern="[A-Za-z0-9_]{5,20}" required />
             </div>
             <div class="row">
-                <label for="typeNumber">Number with min/max/step attributes</label>
+                <label for="typeNumber">Number</label>
                 <input type="number" class="width100" id="typeNumber" name="typeNumber" min="0" max="50" step="5" />
             </div>
             <div class="row">

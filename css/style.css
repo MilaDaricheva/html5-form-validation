@@ -54,7 +54,7 @@ input, select { vertical-align:middle; }
 
 /*======================= Main ====================================*/
 body {
-	font-family: Helvetica, Arial, sans-serif;
+	font-family: sans-serif;
 	color: #333333;
 	background: #EEEEEE;
 	font-size: 14px;
@@ -99,7 +99,11 @@ p {
 .formTemplate input[type="checkbox"],
 .formTemplate input[type="radio"] {
 	float: left;
-	margin: 2px 5px 0 0;
+	clear: left;
+	width: 13px;
+	height: 13px;
+	padding: 0;
+	margin: 1px 5px 0 0;
 }
 .notification {
 	position: absolute;
