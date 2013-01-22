@@ -22,7 +22,7 @@ Apply it to any forms on your page:
     $('.formsSelector').validateForm();
 
 
----
+
 Params:
 ---  
 
