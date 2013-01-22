@@ -6,6 +6,7 @@ Provides validation for required fields and groups of fields.
 Provides validation for the following input types: number, url, email, tel.
 
 Usage:
+______
 
 This requires you to use jQuery.
 
