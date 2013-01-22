@@ -109,8 +109,3 @@ Use html5 input types (number, url, email, tel) to validate according to default
 If you would like to disable default browser's validation, use standard features like "novalidate" attribute for forms.
 
 
-
-
-
-
-
