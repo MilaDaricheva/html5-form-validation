@@ -7,8 +7,9 @@ Provides validation for:
 - for html5 pattern attributes.
 
 
+
 Usage:
-___
+---
 
 This plugin requires jQuery.
 
@@ -21,8 +22,9 @@ Apply it to any forms on your page:
     $('.formsSelector').validateForm();
 
 
+---
 Params:
-___    
+---  
 
 Override default options for all forms, make it once before plugin initializations:
 
@@ -73,6 +75,7 @@ To override params only for selected forms just pass objects as params:
     var options = { /*Your options*/ }, notif = { /*Your show and hide functions*/ };
 
     $('.someFormSelector').validateForm(options, notif);
+
 
 
 Form structure:
