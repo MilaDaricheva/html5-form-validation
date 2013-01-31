@@ -48,10 +48,10 @@
                     } catch (err) {
                         notif.show(jField, "Pattern is wrong: " + pattern + " Error: " + err);
                         return false;
-                    };
+                    }
                 } else {
                     return false;
-                };
+                }
             },
 
             //  Play with formState object and warnings and field's id
@@ -61,19 +61,19 @@
                     if ( !isDefined(fieldOpts.id) || !$.trim(fieldOpts.id) ) {
                         fieldOpts.id = addFieldId(fieldOpts.jField, fieldOpts.uniqueId);
                         fieldOpts.uniqueId++; //increment uniqueId
-                    };
+                    }
                     //Track form state, make notification 
                     formState[fieldOpts.id] = fieldOpts.message;
                     if (fieldOpts.toNotify) { 
                         notif.show(fieldOpts.jField, fieldOpts.message); 
-                    };
+                    }
                 } else {
                     //Field is valid, remove from formState object if set so and hide notification
                     if (fieldOpts.toClearState && formState[fieldOpts.id]) {
                         notif.hide(fieldOpts.jField);
                         delete formState[fieldOpts.id];
-                    };
-                };  
+                    }
+                } 
             },
 
             // Validate pattern
@@ -98,8 +98,8 @@
                     } else {
                         //Field is invalid if it has no value
                         fieldOpts.isInvalid = !fieldOpts.value;      
-                    };
-                };
+                    }
+                }
 
                 processField(fieldOpts, formState);
             };
@@ -118,7 +118,7 @@
                 //If required attribute is set
                 if ( fieldOpts.isRequired ) {
                     validateRequiredField(fieldOpts, formState);
-                };
+                }
 
                 //If field has required attribute set for parent,
                 if ( isDefined($fParent.data("required")) ) {
@@ -126,7 +126,7 @@
                     validateRequiredField(fieldGroupOpts, formState);
                     //save uniqueId so that next time when we set new id it will be unique (incremented)
                     uniqueId = fieldGroupOpts.uniqueId; 
-                };
+                }
 
                 //Validate patterns
                 if (fieldOpts.value) {
@@ -139,16 +139,16 @@
                     } else if ( isDefined(fTypeOpts) ) {
                         //If validation rules exist for this field type, then validate
                         validatePattern(fieldOpts, fTypeOpts.pattern, fTypeOpts.message, formState);
-                    };
-                };
+                    }
+                }
 
                 //Save uniqueId so that next time we set new id it will be unique (incremented)
                 if (uniqueId < fieldOpts.uniqueId) {
                     uniqueId = fieldOpts.uniqueId;
-                };
+                }
             });  
             
-            form.on('submit', function(e) {
+            form.on('submit', function() {
                 var submitButton = form.find(options.submitButton);
                 //We still can have empty required fields or empty required radio button/checkbox groups.
                 //No need to check for patterns because if a user has changed those fields, we have all warnings in our object
@@ -170,11 +170,11 @@
                     var fieldId;
                     for (fieldId in formState) {
                         notif.show(fieldId, formState[fieldId]);
-                    };
+                    }
                     //Global warning about form submition failed
                     notif.show(submitButton, options.messages.failed);
                     return false;
-                };
+                }
             });      
         });
     };
@@ -216,7 +216,7 @@
         show: function(field, message) {
             if (typeof field === "string") {
                 field = $('#' + field);
-            }; 
+            }
             var prev = field.prev(),
                 notification = $($.fn.validateForm.options.notifWrapper, {
                     class: $.fn.validateForm.options.notifClass,
@@ -225,17 +225,17 @@
             if (prev.hasClass($.fn.validateForm.options.notifClass)) {
                 if (prev.text() !== message) {
                     prev.text(message);
-                };
+                }
                 prev.show();
             } else {
                 field.before(notification);
-            };  
+            } 
         },
         hide: function(jField) {
             var prev = jField.prev();
             if (prev.hasClass($.fn.validateForm.options.notifClass)) {
                 prev.hide();
-            };
+            }
         } 
     };
 
